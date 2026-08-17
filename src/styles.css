@@ -1,0 +1,335 @@
+/*
+ * react-roll-the-dice — the entire renderer.
+ *
+ * Layering matters here. Each element owns exactly one motion so the transforms
+ * never fight each other:
+ *
+ *   .rtd-scene     perspective (the camera)
+ *   ├ .rtd-thrower throw arc + landing squash   -> @keyframes
+ *   │ └ .rtd-view  fixed viewing angle          -> static
+ *   │   └ .rtd-cube face rotation               -> transition
+ *   │     └ .rtd-face x6
+ *   └ .rtd-shadow  ground contact               -> @keyframes (sibling of the
+ *                                                  thrower, so it never
+ *                                                  tumbles with the cube)
+ */
+
+.rtd-scene {
+  --rtd-size: 80px;
+  --rtd-duration: 1400ms;
+  /* The final control point above 1 overshoots the target angle slightly and
+     eases back — the die settles instead of stopping dead. */
+  --rtd-ease: cubic-bezier(0.18, 0.9, 0.24, 1.04);
+  --rtd-face-color: #fdfdfb;
+  --rtd-pip-color: #16181d;
+  --rtd-view-x: -16deg;
+  --rtd-view-y: 22deg;
+  --rtd-rx: 0deg;
+  --rtd-ry: 0deg;
+  --rtd-tilt: 0deg;
+
+  --rtd-half: calc(var(--rtd-size) / 2);
+  --rtd-radius: calc(var(--rtd-size) * 0.11);
+
+  position: relative;
+  display: inline-block;
+  width: var(--rtd-size);
+  height: var(--rtd-size);
+  perspective: calc(var(--rtd-size) * 4.5);
+  /* The die leaves its box during the throw; the layout box stays put. */
+  overflow: visible;
+}
+
+.rtd-scene--clickable {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.rtd-scene:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: calc(var(--rtd-size) * 0.12);
+  border-radius: var(--rtd-radius);
+}
+
+.rtd-thrower {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  /* Squash from the point of contact, not the centre. */
+  transform-origin: 50% 100%;
+  animation-duration: var(--rtd-duration);
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+
+.rtd-view {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rtd-view-x)) rotateY(var(--rtd-view-y));
+}
+
+.rtd-cube {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  /* rotateZ comes first so it spins the die in the screen plane without
+     disturbing which face ends up pointing at the camera. */
+  transform: rotateZ(var(--rtd-tilt)) rotateX(var(--rtd-rx)) rotateY(var(--rtd-ry));
+  transition: transform var(--rtd-duration) var(--rtd-ease);
+}
+
+.rtd-cube--instant {
+  transition: none;
+}
+
+/*
+ * The faces are square, not rounded. Rounding them directly opens a notch at
+ * every corner where three faces meet, and you see straight through the die.
+ * Instead each face stays a full square — so the cube is airtight — and the
+ * rounding is painted on by ::before, whose outer shadow darkens the corners
+ * into chamfers. Same silhouette, no holes.
+ */
+.rtd-face {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  padding: calc(var(--rtd-size) * 0.11);
+  background: var(--rtd-face-color);
+  backface-visibility: hidden;
+  /* Contains the corner shading, which spreads well past the face. */
+  overflow: hidden;
+}
+
+.rtd-face::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: var(--rtd-radius);
+  box-shadow:
+    /* Floods everything outside the rounded rect — i.e. the four corners. */
+    0 0 0 calc(var(--rtd-size) * 0.5) rgba(0, 0, 0, 0.11),
+    inset 0 0 calc(var(--rtd-size) * 0.03) rgba(0, 0, 0, 0.05),
+    inset 0 calc(var(--rtd-size) * -0.07) calc(var(--rtd-size) * 0.12) rgba(0, 0, 0, 0.045);
+}
+
+/*
+ * Per-face shading. Without it a cube of identical faces reads as flat.
+ * The amount is set per render from the face's position in the world, not from
+ * its number — otherwise the die would change colour depending on which value
+ * came up.
+ */
+.rtd-face::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: rgba(0, 0, 0, var(--rtd-shade, 0));
+}
+
+.rtd-pip {
+  align-self: center;
+  justify-self: center;
+  width: calc(var(--rtd-size) * 0.18);
+  height: calc(var(--rtd-size) * 0.18);
+  border-radius: 50%;
+  background: var(--rtd-pip-color);
+  box-shadow:
+    inset 0 calc(var(--rtd-size) * 0.02) calc(var(--rtd-size) * 0.02) rgba(255, 255, 255, 0.28),
+    inset 0 calc(var(--rtd-size) * -0.015) calc(var(--rtd-size) * 0.02) rgba(0, 0, 0, 0.35);
+}
+
+.rtd-shadow {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: calc(var(--rtd-size) * -0.07);
+  height: calc(var(--rtd-size) * 0.16);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0) 70%);
+  opacity: 0.28;
+  animation-duration: var(--rtd-duration);
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+
+/*
+ * Restarting the throw needs a different animation-name — re-applying the same
+ * one is a no-op. The component alternates these two classes on every roll,
+ * which retriggers without a remount or a forced reflow.
+ */
+.rtd-scene--a .rtd-thrower {
+  animation-name: rtd-throw-a;
+}
+.rtd-scene--b .rtd-thrower {
+  animation-name: rtd-throw-b;
+}
+.rtd-scene--a .rtd-shadow {
+  animation-name: rtd-shadow-a;
+}
+.rtd-scene--b .rtd-shadow {
+  animation-name: rtd-shadow-b;
+}
+
+/*
+ * Three bounces of decaying height, each split into a decelerating rise and an
+ * accelerating fall, with a squash frame at every contact. That is where the
+ * sense of weight comes from — no physics integration involved.
+ */
+@keyframes rtd-throw-a {
+  0% {
+    transform: translate3d(0, 0, 0) scaleY(1);
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  20% {
+    transform: translate3d(0, -100%, 0) scaleY(1.05);
+    animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+  }
+  40% {
+    transform: translate3d(0, 0, 0) scaleY(0.84);
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  55% {
+    transform: translate3d(0, -34%, 0) scaleY(1.04);
+    animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+  }
+  70% {
+    transform: translate3d(0, 0, 0) scaleY(0.9);
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  81% {
+    transform: translate3d(0, -11%, 0) scaleY(1.02);
+    animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+  }
+  90% {
+    transform: translate3d(0, 0, 0) scaleY(0.95);
+  }
+  95% {
+    transform: translate3d(0, -3%, 0) scaleY(1.01);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scaleY(1);
+  }
+}
+
+@keyframes rtd-throw-b {
+  0% {
+    transform: translate3d(0, 0, 0) scaleY(1);
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  20% {
+    transform: translate3d(0, -100%, 0) scaleY(1.05);
+    animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+  }
+  40% {
+    transform: translate3d(0, 0, 0) scaleY(0.84);
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  55% {
+    transform: translate3d(0, -34%, 0) scaleY(1.04);
+    animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+  }
+  70% {
+    transform: translate3d(0, 0, 0) scaleY(0.9);
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  81% {
+    transform: translate3d(0, -11%, 0) scaleY(1.02);
+    animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+  }
+  90% {
+    transform: translate3d(0, 0, 0) scaleY(0.95);
+  }
+  95% {
+    transform: translate3d(0, -3%, 0) scaleY(1.01);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scaleY(1);
+  }
+}
+
+/* Inverse phase: the shadow tightens and fades as the die climbs. */
+@keyframes rtd-shadow-a {
+  0% {
+    transform: scale(1);
+    opacity: 0.28;
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  20% {
+    transform: scale(0.55);
+    opacity: 0.09;
+    animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+  }
+  40% {
+    transform: scale(1.08);
+    opacity: 0.32;
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  55% {
+    transform: scale(0.78);
+    opacity: 0.17;
+    animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+  }
+  70% {
+    transform: scale(1.04);
+    opacity: 0.3;
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  81% {
+    transform: scale(0.92);
+    opacity: 0.23;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.28;
+  }
+}
+
+@keyframes rtd-shadow-b {
+  0% {
+    transform: scale(1);
+    opacity: 0.28;
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  20% {
+    transform: scale(0.55);
+    opacity: 0.09;
+    animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+  }
+  40% {
+    transform: scale(1.08);
+    opacity: 0.32;
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  55% {
+    transform: scale(0.78);
+    opacity: 0.17;
+    animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+  }
+  70% {
+    transform: scale(1.04);
+    opacity: 0.3;
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  81% {
+    transform: scale(0.92);
+    opacity: 0.23;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.28;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rtd-cube {
+    transition-duration: 1ms;
+  }
+  .rtd-thrower,
+  .rtd-shadow {
+    animation: none;
+  }
+}

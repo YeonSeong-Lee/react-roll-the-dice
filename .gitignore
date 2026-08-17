@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.tgz
+.DS_Store
+
+# Agent tooling state
+.omc/
+
+# Generated from src/styles.css by scripts/generate-css-module.mjs
+src/styles.generated.ts

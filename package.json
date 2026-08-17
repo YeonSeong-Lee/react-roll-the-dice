@@ -1,0 +1,72 @@
+{
+  "name": "react-roll-the-dice",
+  "version": "0.1.0",
+  "description": "Zero-dependency 3D dice roller for React, rendered entirely in CSS.",
+  "keywords": [
+    "react",
+    "dice",
+    "3d",
+    "css",
+    "roll",
+    "d6",
+    "animation",
+    "zero-dependency"
+  ],
+  "license": "MIT",
+  "author": "yeonseong <yeonseong.dev@gmail.com>",
+  "homepage": "https://github.com/YeonSeong-Lee/react-roll-the-dice#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YeonSeong-Lee/react-roll-the-dice.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YeonSeong-Lee/react-roll-the-dice/issues"
+  },
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "peerDependencies": {
+    "react": ">=17.0.0"
+  },
+  "scripts": {
+    "gen:css": "node scripts/generate-css-module.mjs",
+    "prebuild": "npm run gen:css",
+    "build": "tsup",
+    "pretypecheck": "npm run gen:css",
+    "typecheck": "tsc --noEmit",
+    "lint:pkg": "publint && attw --pack --exclude-entrypoints styles.css",
+    "prepublishOnly": "npm run typecheck && npm run build && npm run lint:pkg"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
+    "@types/react": "^19.0.0",
+    "publint": "^0.3.16",
+    "react": "^19.0.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.7.3"
+  }
+}
