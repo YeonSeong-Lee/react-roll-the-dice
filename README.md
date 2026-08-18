@@ -4,6 +4,14 @@ A 3D dice roller for React with **no runtime dependencies**. The die is a real C
 cube — six positioned faces under `transform-style: preserve-3d` — and the throw is
 plain CSS motion. No canvas, no WebGL, no physics engine, no animation library.
 
+<p align="center">
+  <img
+    src="https://raw.githubusercontent.com/YeonSeong-Lee/react-roll-the-dice/main/assets/demo.gif"
+    alt="A die is thrown, tumbles through a bouncing arc, and settles showing five on its top face"
+    width="640"
+  />
+</p>
+
 ```bash
 npm install react-roll-the-dice
 ```
@@ -39,7 +47,7 @@ and stylesheet together.
 
 | Prop | Type | Default | |
 |---|---|---|---|
-| `size` | `number \| string` | `80` | Edge length. Numbers mean pixels. |
+| `size` | `number \| string` | `80` | Layout box the die is drawn to fit. Numbers mean pixels. |
 | `defaultValue` | `DiceValue` | `1` | Face shown before the first roll. |
 | `duration` | `number` | `1400` | Roll length in ms. |
 | `faceColor` | `string` | `#fdfdfb` | Any CSS color. |
@@ -88,11 +96,16 @@ theme it without touching props:
 .rtd-scene {
   --rtd-face-color: #1e2130;
   --rtd-pip-color: #ffd9a0;
-  --rtd-view-x: -16deg;   /* camera pitch */
-  --rtd-view-y: 22deg;    /* camera yaw   */
+  --rtd-view-x: -44deg;   /* camera pitch */
+  --rtd-view-y: 30deg;    /* camera yaw   */
+  --rtd-fit: 0.58;        /* die scaled to fit that box     */
   --rtd-ease: cubic-bezier(0.18, 0.9, 0.24, 1.04);
 }
 ```
+
+Flattening `--rtd-view-x` toward `0deg` swings the camera round to eye level. The
+result still sits on the top face, so a shallow pitch makes it harder to read,
+not easier.
 
 ### Content Security Policy
 
@@ -120,6 +133,9 @@ import 'react-roll-the-dice/styles.css'
   React 17 and 18 render it inline instead, which is harmless.
 - **Reduced motion.** Under `prefers-reduced-motion: reduce` the tumble is
   skipped and the result appears immediately. `onRollEnd` still fires.
+- **The result is the top face.** The camera looks down at the die, so you read
+  it the way you read a die on a table — no need to work out which of the
+  visible faces is the one that counts.
 - **Fair and physical.** Opposite faces sum to 7 and the die is right-handed, the
   Western convention. Each throw picks its own spin counts and landing angle, so
   no two rolls trace the same arc.

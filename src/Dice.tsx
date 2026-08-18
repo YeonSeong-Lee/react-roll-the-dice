@@ -17,8 +17,8 @@ import type { DiceHandle, DiceProps, DiceValue } from './types'
 /** Extra whole turns added per roll, so no two throws trace the same arc. */
 const MIN_TURNS = 2
 const TURN_SPREAD = 3
-/** Degrees of in-plane rotation the die can settle at, either way. */
-const MAX_TILT = 6
+/** Degrees the die can settle away from square, either way, about the vertical. */
+const MAX_YAW = 10
 /** Slack after the transition should have ended, for the fallback timer. */
 const SETTLE_GRACE_MS = 80
 
@@ -26,7 +26,7 @@ interface DiceState {
   value: DiceValue
   rx: number
   ry: number
-  tilt: number
+  yaw: number
   rollId: number
   instant: boolean
 }
@@ -77,7 +77,7 @@ export const Dice = forwardRef<DiceHandle, DiceProps>(function Dice(
     value: defaultValue,
     rx: FACE_ROTATION[defaultValue].x,
     ry: FACE_ROTATION[defaultValue].y,
-    tilt: 0,
+    yaw: 0,
     rollId: 0,
     instant: false,
   }))
@@ -116,7 +116,7 @@ export const Dice = forwardRef<DiceHandle, DiceProps>(function Dice(
     turnsY.current += MIN_TURNS + Math.floor(pick() * TURN_SPREAD)
     const rx = FACE_ROTATION[next].x + 360 * turnsX.current
     const ry = FACE_ROTATION[next].y + 360 * turnsY.current
-    const tilt = Math.round((pick() * 2 - 1) * MAX_TILT * 10) / 10
+    const yaw = Math.round((pick() * 2 - 1) * MAX_YAW * 10) / 10
 
     valueRef.current = next
     markRolling(true)
@@ -124,7 +124,7 @@ export const Dice = forwardRef<DiceHandle, DiceProps>(function Dice(
       value: next,
       rx,
       ry,
-      tilt,
+      yaw,
       rollId: prev.rollId + 1,
       instant: false,
     }))
@@ -223,7 +223,7 @@ export const Dice = forwardRef<DiceHandle, DiceProps>(function Dice(
     '--rtd-duration': `${effectiveDuration}ms`,
     '--rtd-rx': `${state.rx}deg`,
     '--rtd-ry': `${state.ry}deg`,
-    '--rtd-tilt': `${state.tilt}deg`,
+    '--rtd-yaw': `${state.yaw}deg`,
   }
   if (faceColor) cssVariables['--rtd-face-color'] = faceColor
   if (pipColor) cssVariables['--rtd-pip-color'] = pipColor

@@ -60,7 +60,7 @@ function App() {
 
       <h2 style={{ fontSize: '1rem' }}>Every face, via handle.set()</h2>
       <p style={{ color: '#5d616e', fontSize: 14 }}>
-        Opposite faces must sum to 7. Pips should be upright and correct on each.
+        The top face must match the label underneath. Opposite faces sum to 7.
       </p>
       <div style={{ display: 'flex', gap: '1.75rem', flexWrap: 'wrap' }}>
         {[1, 2, 3, 4, 5, 6].map((face) => (

@@ -26,10 +26,16 @@ export const FACE_PLACEMENT: Record<DiceValue, string> = {
  * Cube rotation that brings a given value to face the camera — the inverse of
  * that face's placement.
  *
- * Every entry leaves one axis at zero, which is what makes the accumulated-turn
- * trick in `Dice.tsx` safe: adding a multiple of 360deg to either axis lands on
- * the same orientation, and with only one axis in play the composition order of
- * rotateX/rotateY never changes the result.
+ * This is not the final resting rotation. `.rtd-cube` applies a further fixed
+ * `rotateX(90deg)` outside these, which carries the front position round to the
+ * top, so the value actually settles face up. Keeping this table as the plain
+ * inverse of `FACE_PLACEMENT` is what lets that extra quarter turn stay a
+ * single readable step in the stylesheet.
+ *
+ * The accumulated-turn trick in `Dice.tsx` is safe because `rotateX` and
+ * `rotateY` are each individually periodic in 360deg: adding a multiple of a
+ * full turn to either argument yields the identical matrix, whatever the other
+ * axis happens to be.
  */
 export const FACE_ROTATION: Record<DiceValue, { x: number; y: number }> = {
   1: { x: 0, y: 0 },
@@ -57,19 +63,21 @@ const WORLD_SHADE: Record<WorldSide, number> = {
 }
 
 /**
- * Which value ends up on each side of the world once `value` is showing —
- * the layout above, permuted by that value's entry in `FACE_ROTATION`.
+ * Which value ends up on each side of the world once `value` is showing — the
+ * layout above, permuted by that value's resting rotation (its `FACE_ROTATION`
+ * entry plus the `rotateX(90deg)` that stands the die up).
  *
- * Every row still pairs to 7 across each axis, which is the quickest way to
- * check one by hand.
+ * `top` always equals the value, since that is the whole point of the extra
+ * quarter turn, and every row still pairs to 7 across each axis — the quickest
+ * way to check one by hand.
  */
 const ORIENTATION: Record<DiceValue, Record<WorldSide, DiceValue>> = {
-  1: { front: 1, back: 6, right: 3, left: 4, top: 5, bottom: 2 },
-  2: { front: 2, back: 5, right: 3, left: 4, top: 1, bottom: 6 },
-  3: { front: 3, back: 4, right: 6, left: 1, top: 5, bottom: 2 },
-  4: { front: 4, back: 3, right: 1, left: 6, top: 5, bottom: 2 },
-  5: { front: 5, back: 2, right: 3, left: 4, top: 6, bottom: 1 },
-  6: { front: 6, back: 1, right: 4, left: 3, top: 5, bottom: 2 },
+  1: { top: 1, bottom: 6, front: 2, back: 5, left: 4, right: 3 },
+  2: { top: 2, bottom: 5, front: 6, back: 1, left: 4, right: 3 },
+  3: { top: 3, bottom: 4, front: 2, back: 5, left: 1, right: 6 },
+  4: { top: 4, bottom: 3, front: 2, back: 5, left: 6, right: 1 },
+  5: { top: 5, bottom: 2, front: 1, back: 6, left: 4, right: 3 },
+  6: { top: 6, bottom: 1, front: 2, back: 5, left: 3, right: 4 },
 }
 
 /**

@@ -1,0 +1,59 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  background: #f6f6f8;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: #16181d;
+}
+
+.card {
+  display: flex;
+  align-items: flex-end;
+  gap: 40px;
+  padding: 26px 46px 34px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 1px 2px rgba(16, 18, 29, 0.06), 0 12px 32px rgba(16, 18, 29, 0.08);
+}
+
+.panel { display: flex; flex-direction: column; gap: 14px; min-width: 158px; padding-bottom: 30px; }
+
+.btn {
+  appearance: none;
+  border: 0;
+  border-radius: 11px;
+  padding: 13px 30px;
+  font: inherit;
+  font-weight: 600;
+  font-size: 16px;
+  color: #fff;
+  background: #16181d;
+  cursor: pointer;
+  transition: transform 90ms ease, box-shadow 90ms ease;
+  box-shadow: 0 3px 0 #babcc4;
+}
+
+.btn.is-pressed { transform: translateY(3px); box-shadow: 0 0 0 #babcc4; }
+
+.out {
+  margin: 0;
+  font-size: 16px;
+  color: #6b6f7d;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.out.is-on { opacity: 1; transform: none; }
+.out strong { color: #16181d; font-size: 20px; }
+
+/* Headroom for the throw arc — the die leaves its layout box mid-flight. */
+.stage {
+  display: flex;
+  align-items: flex-end;
+  height: 268px;
+}

@@ -15,7 +15,7 @@ export interface DiceHandle {
 
 export interface DiceProps
   extends Omit<HTMLAttributes<HTMLDivElement>, 'onAnimationEnd' | 'children'> {
-  /** Edge length. Numbers are treated as pixels. @default 80 */
+  /** Size of the die's layout box. Numbers are treated as pixels. @default 80 */
   size?: number | string
   /** Face shown before the first roll. @default 1 */
   defaultValue?: DiceValue

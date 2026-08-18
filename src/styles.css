@@ -7,7 +7,7 @@
  *   .rtd-scene     perspective (the camera)
  *   ├ .rtd-thrower throw arc + landing squash   -> @keyframes
  *   │ └ .rtd-view  fixed viewing angle          -> static
- *   │   └ .rtd-cube face rotation               -> transition
+ *   │   └ .rtd-cube result to the top face      -> transition
  *   │     └ .rtd-face x6
  *   └ .rtd-shadow  ground contact               -> @keyframes (sibling of the
  *                                                  thrower, so it never
@@ -22,11 +22,39 @@
   --rtd-ease: cubic-bezier(0.18, 0.9, 0.24, 1.04);
   --rtd-face-color: #fdfdfb;
   --rtd-pip-color: #16181d;
-  --rtd-view-x: -16deg;
-  --rtd-view-y: 22deg;
+  /* Pitched well down, so the result face reads as the top of the die. */
+  --rtd-view-x: -44deg;
+  /*
+   * A true three-quarter view: wide enough that the third face reads as a face
+   * rather than a bright strip with fragments of pips down it.
+   *
+   * Swinging it back toward 0deg does not protect the top-face reading, it
+   * costs it. Projected face area is |sin(view-x)| for the top against
+   * |cos(view-x)| * cos(yaw) for the front, so the two cross at about 15deg and
+   * anything below that makes the *front* face the biggest thing on screen. At
+   * 30deg it is top 0.70, front 0.62, side 0.36 — the order the die is meant to
+   * be read in.
+   */
+  --rtd-view-y: 30deg;
+  /*
+   * Looking down at a cube projects it taller than its own edge, so the die is
+   * scaled to land its resting silhouette inside the layout box. Without this a
+   * die overhangs by about 60% vertically and collides with whatever sits
+   * around it.
+   *
+   * For a unit cube that projected height is
+   *   |cos(view-x)| + |sin(view-x)| * (|sin(yaw)| + |cos(yaw)|)
+   * = 1.67 at -44deg/30deg. The settle wobble adds up to another 10deg of yaw,
+   * so the number below is the reciprocal of the worst case over that whole
+   * range with the perspective divide folded in — measured on a 120px die, the
+   * widest landing overhangs the bottom edge by 0px and leaves 1.7px above.
+   *
+   * The die still leaves its box mid-throw. That is the arc, not the fit.
+   */
+  --rtd-fit: 0.58;
   --rtd-rx: 0deg;
   --rtd-ry: 0deg;
-  --rtd-tilt: 0deg;
+  --rtd-yaw: 0deg;
 
   --rtd-half: calc(var(--rtd-size) / 2);
   --rtd-radius: calc(var(--rtd-size) * 0.11);
@@ -35,7 +63,8 @@
   display: inline-block;
   width: var(--rtd-size);
   height: var(--rtd-size);
-  perspective: calc(var(--rtd-size) * 4.5);
+  /* Long lens. A shorter one visibly warps the cube at this viewing pitch. */
+  perspective: calc(var(--rtd-size) * 7);
   /* The die leaves its box during the throw; the layout box stays put. */
   overflow: visible;
 }
@@ -66,16 +95,27 @@
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transform: rotateX(var(--rtd-view-x)) rotateY(var(--rtd-view-y));
+  /* Uniform scale — scaling x/y alone would shear the cube once it is rotated. */
+  transform: scale3d(var(--rtd-fit), var(--rtd-fit), var(--rtd-fit))
+    rotateX(var(--rtd-view-x)) rotateY(var(--rtd-view-y));
 }
 
 .rtd-cube {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  /* rotateZ comes first so it spins the die in the screen plane without
-     disturbing which face ends up pointing at the camera. */
-  transform: rotateZ(var(--rtd-tilt)) rotateX(var(--rtd-rx)) rotateY(var(--rtd-ry));
+  /*
+   * Read bottom-up: --rtd-rx/--rtd-ry bring the rolled value round to the front,
+   * then the fixed quarter turn carries the front position to the top, so the
+   * result settles face up the way a real die does.
+   *
+   * The settle wobble has to be rotateY, not rotateZ. rotateY spins about the
+   * vertical, which leaves the top face exactly level; rotateZ would tip it off
+   * horizontal by the wobble angle and blunt the one signal that says "this is
+   * the face you read".
+   */
+  transform: rotateY(var(--rtd-yaw)) rotateX(90deg) rotateX(var(--rtd-rx))
+    rotateY(var(--rtd-ry));
   transition: transform var(--rtd-duration) var(--rtd-ease);
 }
 
@@ -146,7 +186,13 @@
   position: absolute;
   left: 12%;
   right: 12%;
-  bottom: calc(var(--rtd-size) * -0.07);
+  /*
+   * Half the height below the box, which centres the ellipse on the bottom
+   * edge — and --rtd-fit is what puts the die's lowest vertex exactly there.
+   * Anchor it any higher and the cube covers the whole thing: the shadow was
+   * being drawn all along, just inside the die instead of under it.
+   */
+  bottom: calc(var(--rtd-size) * -0.08);
   height: calc(var(--rtd-size) * 0.16);
   border-radius: 50%;
   background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0) 70%);
