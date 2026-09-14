@@ -58,7 +58,7 @@
     "build": "tsup",
     "pretypecheck": "npm run gen:css",
     "typecheck": "tsc --noEmit",
-    "lint:pkg": "publint && attw --pack --exclude-entrypoints styles.css",
+    "lint:pkg": "publint && node scripts/check-type-resolution.mjs",
     "prepublishOnly": "npm run typecheck && npm run build && npm run lint:pkg"
   },
   "devDependencies": {
