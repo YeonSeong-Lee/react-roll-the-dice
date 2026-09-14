@@ -22,6 +22,44 @@ const scriptedRandom = () => {
   return () => SCRIPT[i++ % SCRIPT.length]
 }
 
+const INSTALL = 'npm install react-roll-the-dice'
+
+const USAGE = `import { useRef } from 'react'
+import { Dice, type DiceHandle } from 'react-roll-the-dice'
+
+function Board() {
+  const dice = useRef<DiceHandle>(null)
+
+  return (
+    <>
+      <Dice ref={dice} size={120} onRollEnd={(value) => console.log(value)} />
+      <button onClick={() => dice.current?.roll()}>Roll</button>
+    </>
+  )
+}`
+
+function CodeBlock({ code }) {
+  const [copied, setCopied] = useState(false)
+  return (
+    <div className="code">
+      <pre>
+        <code>{code}</code>
+      </pre>
+      <button
+        className="copy"
+        onClick={() =>
+          navigator.clipboard.writeText(code).then(() => {
+            setCopied(true)
+            setTimeout(() => setCopied(false), 1500)
+          })
+        }
+      >
+        {copied ? 'Copied' : 'Copy'}
+      </button>
+    </div>
+  )
+}
+
 function Demo() {
   const dice = useRef(null)
   const [result, setResult] = useState(null)
@@ -55,44 +93,71 @@ function Demo() {
   const isPressed = FILM ? t >= PRESS_AT && t < ROLL_AT + 130 : pressed
   const value = FILM ? SCRIPTED_VALUE : result
 
-  return (
-    <>
-      <div className="card">
-        <div className="stage">
-          <Dice
-            ref={dice}
-            size={128}
-            duration={DURATION}
-            random={FILM ? scriptedRandom() : undefined}
-            onRollEnd={setResult}
-          />
-        </div>
-        <div className="panel">
-          <button
-            className={isPressed ? 'btn is-pressed' : 'btn'}
-            onMouseDown={() => setPressed(true)}
-            onMouseUp={() => setPressed(false)}
-            onMouseLeave={() => setPressed(false)}
-            onClick={() => {
-              setResult(null)
-              dice.current?.roll()
-            }}
-          >
-            Roll
-          </button>
-          <p className={showResult ? 'out is-on' : 'out'}>
-            You rolled <strong>{value ?? '—'}</strong>
-          </p>
-        </div>
+  const card = (
+    <div className="card">
+      <div className="stage">
+        <Dice
+          ref={dice}
+          size={128}
+          duration={DURATION}
+          random={FILM ? scriptedRandom() : undefined}
+          onRollEnd={setResult}
+        />
       </div>
-      {/* Kept out of the film frame so the README GIF stays just the card. */}
-      {!FILM && (
-        <p className="links">
-          <code>npm install react-roll-the-dice</code>
-          <a href="https://github.com/YeonSeong-Lee/react-roll-the-dice">GitHub</a>
+      <div className="panel">
+        <button
+          className={isPressed ? 'btn is-pressed' : 'btn'}
+          onMouseDown={() => setPressed(true)}
+          onMouseUp={() => setPressed(false)}
+          onMouseLeave={() => setPressed(false)}
+          onClick={() => {
+            setResult(null)
+            dice.current?.roll()
+          }}
+        >
+          Roll
+        </button>
+        <p className={showResult ? 'out is-on' : 'out'}>
+          You rolled <strong>{value ?? '—'}</strong>
         </p>
-      )}
-    </>
+      </div>
+    </div>
+  )
+
+  // The film frame is just the card, so the README GIF stays unchanged.
+  if (FILM) return card
+
+  return (
+    <main className="page">
+      <header className="hero">
+        <h1>react-roll-the-dice</h1>
+        <p className="tagline">
+          A 3D die for React, built from nothing but CSS. No canvas, no WebGL,
+          no physics engine, no animation library.
+        </p>
+        <ul className="facts">
+          <li><strong>0</strong> runtime dependencies</li>
+          <li><strong>CSS</strong> only</li>
+          <li><strong>~6 kB</strong> gzipped</li>
+        </ul>
+      </header>
+
+      {card}
+
+      <section className="usage">
+        <h2>Usage</h2>
+        <CodeBlock code={INSTALL} />
+        <CodeBlock code={USAGE} />
+        <p className="note">
+          No stylesheet import needed — the component renders its own{' '}
+          <code>&lt;style&gt;</code>. React is the only peer dependency.
+        </p>
+        <p className="links">
+          <a href="https://github.com/YeonSeong-Lee/react-roll-the-dice">GitHub</a>
+          <a href="https://www.npmjs.com/package/react-roll-the-dice">npm</a>
+        </p>
+      </section>
+    </main>
   )
 }
 

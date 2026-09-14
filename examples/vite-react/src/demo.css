@@ -58,31 +58,111 @@ body {
   height: 268px;
 }
 
-.links {
-  margin: 28px 0 0;
+/* Everything below styles the published page around the card; the film frame
+   renders the card alone. */
+body { grid-template-columns: minmax(0, 1fr); padding-inline: 16px; }
+
+/* Centred in the grid, #root shrink-wraps its content, and that can't go
+   narrower than the widest unwrapped code line — which pushes the page past a
+   phone's width. Pin it to the track instead. Scoped to the published page, so
+   the film frame's #root still hugs the card. */
+#root:has(> .page) { width: 100%; }
+
+.page {
+  width: 100%;
+  max-width: 680px;
+  margin-inline: auto;
+  padding-block: 56px 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+
+.hero { text-align: center; }
+.hero h1 { margin: 0; font-size: 32px; letter-spacing: -0.02em; }
+
+.tagline {
+  margin: 12px auto 0;
+  max-width: 34em;
+  font-size: 17px;
+  line-height: 1.55;
+  color: #4b4f5c;
+}
+
+.facts {
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  align-items: center;
-  gap: 10px 18px;
-  font-size: 14px;
-  color: #6b6f7d;
+  gap: 10px;
 }
 
-.links code {
-  padding: 6px 10px;
-  border-radius: 8px;
+.facts li {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 0 1px #e3e4e9;
+  font-size: 14px;
+  color: #4b4f5c;
+}
+
+.facts strong { color: #16181d; }
+
+.usage { width: 100%; min-width: 0; }
+.usage h2 { margin: 0 0 14px; font-size: 18px; }
+
+.code { position: relative; margin-bottom: 12px; }
+
+.code pre {
+  margin: 0;
+  padding: 16px 20px;
+  padding-right: 76px;
+  overflow-x: auto;
+  border-radius: 12px;
+  background: #16181d;
+  color: #e6e7ec;
+  font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.copy {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  appearance: none;
+  border: 0;
+  border-radius: 7px;
+  padding: 5px 10px;
+  font: inherit;
+  font-size: 12px;
+  color: #e6e7ec;
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+}
+
+.copy:hover { background: rgba(255, 255, 255, 0.18); }
+
+.note { margin: 16px 0 0; font-size: 14px; line-height: 1.55; color: #6b6f7d; }
+
+.note code {
+  padding: 2px 6px;
+  border-radius: 5px;
   background: #ebebef;
   color: #16181d;
   font-size: 13px;
 }
 
+.links { margin: 20px 0 0; display: flex; gap: 18px; font-size: 14px; }
 .links a { color: #16181d; font-weight: 600; }
 
 /* Phones: stack the die over the button. Wider than the 520px GIF viewport
    never reaches here, so the README capture is unaffected. */
 @media (max-width: 480px) {
-  body { padding-inline: 16px; }
+  .page { padding-block: 36px 56px; gap: 32px; }
+  .hero h1 { font-size: 26px; }
+  .tagline { font-size: 16px; }
   .card { flex-direction: column; align-items: center; gap: 8px; padding: 12px 28px 28px; }
   .panel { align-items: center; padding-bottom: 0; }
 }
