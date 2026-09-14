@@ -33,6 +33,9 @@ body {
   color: #fff;
   background: #16181d;
   cursor: pointer;
+  /* Rapid taps roll again instead of zooming the page on iOS. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: transform 90ms ease, box-shadow 90ms ease;
   box-shadow: 0 3px 0 #babcc4;
 }
@@ -84,6 +87,7 @@ body { grid-template-columns: minmax(0, 1fr); padding-inline: 16px; }
  * Spans the same column as the code blocks below it.
  */
 .table {
+  --die-size: 128px;
   align-self: stretch;
   background: #fff;
   border-radius: 20px;
@@ -91,8 +95,8 @@ body { grid-template-columns: minmax(0, 1fr); padding-inline: 16px; }
 }
 
 /*
- * The throw lifts the die a full box height (128px) above its 128px landing
- * box, so the stage holds both, the 36px floor below, and ~20px to spare at
+ * The throw lifts the die a full box height above its landing box, so the
+ * stage holds two die heights, the 36px floor below, and ~20px to spare at
  * the peak. The floor glow and the dot grid fading upward make that headroom
  * read as air over a table rather than an empty card.
  */
@@ -101,7 +105,7 @@ body { grid-template-columns: minmax(0, 1fr); padding-inline: 16px; }
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  height: 312px;
+  height: calc(var(--die-size) * 2 + 56px);
   padding-bottom: 36px;
   border-radius: 20px 20px 0 0;
   background: radial-gradient(ellipse 42% 18% at 50% calc(100% - 36px), #eceef3, rgba(236, 238, 243, 0) 70%);
@@ -195,23 +199,35 @@ body { grid-template-columns: minmax(0, 1fr); padding-inline: 16px; }
 .usage { width: 100%; min-width: 0; }
 .usage h2 { margin: 0 0 14px; font-size: 18px; }
 
-.code { position: relative; margin-bottom: 12px; }
+.code {
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: #16181d;
+  overflow: hidden;
+}
+
+.code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px 6px 20px;
+  border-bottom: 1px solid #262930;
+}
+
+.code-lang {
+  font: 12px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: #8b8f9c;
+}
 
 .code pre {
   margin: 0;
-  padding: 16px 20px;
-  padding-right: 76px;
+  padding: 14px 20px 16px;
   overflow-x: auto;
-  border-radius: 12px;
-  background: #16181d;
   color: #e6e7ec;
   font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 .copy {
-  position: absolute;
-  top: 10px;
-  right: 10px;
   appearance: none;
   border: 0;
   border-radius: 7px;
@@ -219,11 +235,14 @@ body { grid-template-columns: minmax(0, 1fr); padding-inline: 16px; }
   font: inherit;
   font-size: 12px;
   color: #e6e7ec;
-  background: rgba(255, 255, 255, 0.1);
+  background: #2c2f37;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.copy:hover { background: rgba(255, 255, 255, 0.18); }
+.copy:hover { background: #383c46; }
+.copy:focus-visible { outline: 2px solid #e6e7ec; outline-offset: 2px; }
 
 .note { margin: 16px 0 0; font-size: 14px; line-height: 1.55; color: #6b6f7d; }
 
@@ -242,5 +261,17 @@ body { grid-template-columns: minmax(0, 1fr); padding-inline: 16px; }
   .page { padding-block: 36px 56px; gap: 32px; }
   .hero h1 { font-size: 26px; }
   .tagline { font-size: 16px; }
-  .table-bar { padding: 12px 12px 12px 20px; }
+  .facts { gap: 8px; }
+  .facts li { padding: 7px 12px; font-size: 13px; }
+  /* A smaller die shortens the stage with it: 264px instead of 312px. */
+  .table { --die-size: 104px; }
+  /* The result sits centred over a full-width Roll button — the primary
+     action gets the whole thumb-reachable width instead of a corner. */
+  .table-bar { flex-direction: column; align-items: stretch; gap: 12px; padding: 16px; }
+  .readout { justify-content: center; }
+  .table-bar .btn { width: 100%; min-height: 52px; font-size: 17px; }
+  .code-head { padding: 4px 6px 4px 16px; }
+  .code pre { padding: 12px 16px 14px; font-size: 12px; }
+  /* A comfortable tap target rather than a desktop-sized chip. */
+  .copy { padding: 9px 14px; font-size: 13px; }
 }

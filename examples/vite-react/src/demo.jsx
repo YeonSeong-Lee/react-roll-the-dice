@@ -38,24 +38,29 @@ function Board() {
   )
 }`
 
-function CodeBlock({ code }) {
+// The Copy button sits in a header row rather than over the code, so on a
+// phone — where it is sized for a finger — it never covers a line.
+function CodeBlock({ code, lang }) {
   const [copied, setCopied] = useState(false)
   return (
     <div className="code">
+      <div className="code-head">
+        <span className="code-lang">{lang}</span>
+        <button
+          className="copy"
+          onClick={() =>
+            navigator.clipboard.writeText(code).then(() => {
+              setCopied(true)
+              setTimeout(() => setCopied(false), 1500)
+            })
+          }
+        >
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
       <pre>
         <code>{code}</code>
       </pre>
-      <button
-        className="copy"
-        onClick={() =>
-          navigator.clipboard.writeText(code).then(() => {
-            setCopied(true)
-            setTimeout(() => setCopied(false), 1500)
-          })
-        }
-      >
-        {copied ? 'Copied' : 'Copy'}
-      </button>
     </div>
   )
 }
@@ -94,15 +99,40 @@ function Demo() {
   const isPressed = FILM ? t >= PRESS_AT && t < ROLL_AT + 130 : pressed
   const value = FILM ? SCRIPTED_VALUE : result
 
+  // On the page the die itself is a roll button too. The readout below owns
+  // the announcement, so the die's own live region is silenced — it would
+  // otherwise speak twice, and give the result away as the roll starts.
+  // Every roll, from the button or the die, resets the readout through
+  // onRollStart. The film frame gets none of this.
+  const pageDieProps = FILM
+    ? {}
+    : {
+        rollOnClick: true,
+        'aria-label': 'Roll the die',
+        'aria-live': 'off',
+        onRollStart: () => {
+          setResult(null)
+          setRolling(true)
+        },
+      }
+
   const die = (
     <Dice
       ref={dice}
-      size={128}
+      // The page sizes the die from CSS so phones get a smaller one and a
+      // shorter stage; the film frame keeps the 128px the GIF was shot at.
+      size={FILM ? 128 : 'var(--die-size)'}
       duration={DURATION}
       random={FILM ? scriptedRandom() : undefined}
+      {...pageDieProps}
       onRollEnd={(v) => {
         setResult(v)
         setRolling(false)
+        // A tap of feedback as it lands. Android only — iOS Safari has no
+        // vibrate, and the optional call is a no-op there.
+        if (!FILM && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          navigator.vibrate?.(10)
+        }
       }}
     />
   )
@@ -110,14 +140,13 @@ function Demo() {
   const rollButton = (
     <button
       className={isPressed ? 'btn is-pressed' : 'btn'}
-      onMouseDown={() => setPressed(true)}
-      onMouseUp={() => setPressed(false)}
-      onMouseLeave={() => setPressed(false)}
-      onClick={() => {
-        setResult(null)
-        setRolling(true)
-        dice.current?.roll()
-      }}
+      // Pointer events, so a finger presses the button on touch-down rather
+      // than on the mouse events a browser synthesises after the tap ends.
+      onPointerDown={() => setPressed(true)}
+      onPointerUp={() => setPressed(false)}
+      onPointerLeave={() => setPressed(false)}
+      onPointerCancel={() => setPressed(false)}
+      onClick={() => dice.current?.roll()}
     >
       Roll
     </button>
@@ -179,8 +208,8 @@ function Demo() {
 
       <section className="usage">
         <h2>Usage</h2>
-        <CodeBlock code={INSTALL} />
-        <CodeBlock code={USAGE} />
+        <CodeBlock code={INSTALL} lang="bash" />
+        <CodeBlock code={USAGE} lang="tsx" />
         <p className="note">
           No stylesheet import needed — the component renders its own{' '}
           <code>&lt;style&gt;</code>. React is the only peer dependency.
