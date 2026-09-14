@@ -1,5 +1,11 @@
 # react-roll-the-dice
 
+[![npm](https://img.shields.io/npm/v/react-roll-the-dice)](https://www.npmjs.com/package/react-roll-the-dice)
+[![bundle size](https://deno.bundlejs.com/badge?q=react-roll-the-dice)](https://bundlejs.com/?q=react-roll-the-dice)
+[![types](https://img.shields.io/npm/types/react-roll-the-dice)](https://www.npmjs.com/package/react-roll-the-dice)
+[![license](https://img.shields.io/npm/l/react-roll-the-dice)](./LICENSE)
+[![demo](https://img.shields.io/badge/demo-live-16181d)](https://yeonseong-lee.github.io/react-roll-the-dice/)
+
 A 3D dice roller for React with **no runtime dependencies**. The die is a real CSS
 cube — six positioned faces under `transform-style: preserve-3d` — and the throw is
 plain CSS motion. No canvas, no WebGL, no physics engine, no animation library.
