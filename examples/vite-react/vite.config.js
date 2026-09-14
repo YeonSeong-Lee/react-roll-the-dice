@@ -3,14 +3,18 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  // GitHub Pages serves the build under /react-roll-the-dice/; the workflow
+  // passes that in. Dev stays at / so scripts/film-demo.mjs keeps its URL.
+  base: process.env.VITE_BASE ?? '/',
   plugins: [react()],
   server: { port: 5177 },
   build: {
     rollupOptions: {
       input: {
-        // The harness, and the page scripts/film-demo.mjs captures the GIF from.
+        // The published demo, which scripts/film-demo.mjs also captures the GIF
+        // from, and the test harness.
         main: resolve(import.meta.dirname, 'index.html'),
-        demo: resolve(import.meta.dirname, 'demo.html'),
+        harness: resolve(import.meta.dirname, 'harness.html'),
       },
     },
   },

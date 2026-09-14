@@ -56,34 +56,43 @@ function Demo() {
   const value = FILM ? SCRIPTED_VALUE : result
 
   return (
-    <div className="card">
-      <div className="stage">
-        <Dice
-          ref={dice}
-          size={128}
-          duration={DURATION}
-          random={FILM ? scriptedRandom() : undefined}
-          onRollEnd={setResult}
-        />
+    <>
+      <div className="card">
+        <div className="stage">
+          <Dice
+            ref={dice}
+            size={128}
+            duration={DURATION}
+            random={FILM ? scriptedRandom() : undefined}
+            onRollEnd={setResult}
+          />
+        </div>
+        <div className="panel">
+          <button
+            className={isPressed ? 'btn is-pressed' : 'btn'}
+            onMouseDown={() => setPressed(true)}
+            onMouseUp={() => setPressed(false)}
+            onMouseLeave={() => setPressed(false)}
+            onClick={() => {
+              setResult(null)
+              dice.current?.roll()
+            }}
+          >
+            Roll
+          </button>
+          <p className={showResult ? 'out is-on' : 'out'}>
+            You rolled <strong>{value ?? '—'}</strong>
+          </p>
+        </div>
       </div>
-      <div className="panel">
-        <button
-          className={isPressed ? 'btn is-pressed' : 'btn'}
-          onMouseDown={() => setPressed(true)}
-          onMouseUp={() => setPressed(false)}
-          onMouseLeave={() => setPressed(false)}
-          onClick={() => {
-            setResult(null)
-            dice.current?.roll()
-          }}
-        >
-          Roll
-        </button>
-        <p className={showResult ? 'out is-on' : 'out'}>
-          You rolled <strong>{value ?? '—'}</strong>
+      {/* Kept out of the film frame so the README GIF stays just the card. */}
+      {!FILM && (
+        <p className="links">
+          <code>npm install react-roll-the-dice</code>
+          <a href="https://github.com/YeonSeong-Lee/react-roll-the-dice">GitHub</a>
         </p>
-      </div>
-    </div>
+      )}
+    </>
   )
 }
 

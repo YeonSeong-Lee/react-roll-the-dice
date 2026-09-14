@@ -1,0 +1,62 @@
+name: Deploy demo to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      # The demo installs the packed tarball, exactly as a consumer would get it.
+      - name: Build and pack the library
+        run: |
+          npm ci
+          npm run build
+          echo "TGZ=$(npm pack --silent)" >> "$GITHUB_ENV"
+
+      # The example's lockfile is gitignored, so install rather than ci, and point
+      # the dependency at whatever version was just packed.
+      - name: Build the demo
+        working-directory: examples/vite-react
+        env:
+          VITE_BASE: ${{ steps.pages.outputs.base_path }}/
+        run: |
+          npm pkg set "dependencies.react-roll-the-dice=file:../../$TGZ"
+          npm install
+          npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: examples/vite-react/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -9,7 +9,7 @@
 //     --disable-gpu --hide-scrollbars --remote-debugging-port=9222 \
 //     --user-data-dir=/tmp/rtd-film about:blank &
 //   VW=520 VH=390 node scripts/film-demo.mjs \
-//     'http://localhost:5177/demo.html?film' /tmp/frames 20 2500
+//     'http://localhost:5177/?film' /tmp/frames 20 2500
 //   ffmpeg -y -framerate 20 -i /tmp/frames/f%03d.png \
 //     -vf "scale=640:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=96:stats_mode=diff[p];[s1][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle" \
 //     -loop 0 assets/demo.gif
