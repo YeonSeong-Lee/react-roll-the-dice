@@ -79,8 +79,86 @@ body { grid-template-columns: minmax(0, 1fr); padding-inline: 16px; }
   gap: 40px;
 }
 
-/* On the page the card spans the same column as the code blocks below it. */
-.page .card { align-self: stretch; justify-content: center; }
+/*
+ * The page's roll surface: a stage over a bar holding the readout and button.
+ * Spans the same column as the code blocks below it.
+ */
+.table {
+  align-self: stretch;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 1px 2px rgba(16, 18, 29, 0.06), 0 12px 32px rgba(16, 18, 29, 0.08);
+}
+
+/*
+ * The throw lifts the die a full box height (128px) above its 128px landing
+ * box, so the stage holds both, the 36px floor below, and ~20px to spare at
+ * the peak. The floor glow and the dot grid fading upward make that headroom
+ * read as air over a table rather than an empty card.
+ */
+.table-stage {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  height: 312px;
+  padding-bottom: 36px;
+  border-radius: 20px 20px 0 0;
+  background: radial-gradient(ellipse 42% 18% at 50% calc(100% - 36px), #eceef3, rgba(236, 238, 243, 0) 70%);
+}
+
+.table-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: radial-gradient(#dcdfe6 1px, transparent 1.5px);
+  background-size: 18px 18px;
+  background-position: center bottom;
+  -webkit-mask-image: linear-gradient(to top, #000, transparent 70%);
+  mask-image: linear-gradient(to top, #000, transparent 70%);
+}
+
+.table-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 16px 16px 24px;
+  border-top: 1px solid #eef0f3;
+}
+
+.readout { margin: 0; display: flex; align-items: baseline; gap: 10px; }
+
+.readout-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b6f7d;
+}
+
+.readout-value {
+  min-width: 1ch;
+  font-size: 28px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: #16181d;
+}
+
+/* The — and … placeholders stay quiet so only a real result draws the eye. */
+.readout-value.is-empty { font-weight: 500; color: #a3a7b3; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .readout-value { animation: readout-in 220ms ease-out; }
+}
+
+@keyframes readout-in {
+  from { opacity: 0; transform: translateY(4px); }
+}
+
+.btn:focus-visible { outline: 2px solid #16181d; outline-offset: 3px; }
 
 .hero { text-align: center; }
 .hero h1 { margin: 0; font-size: 32px; letter-spacing: -0.02em; }
@@ -160,12 +238,9 @@ body { grid-template-columns: minmax(0, 1fr); padding-inline: 16px; }
 .links { margin: 20px 0 0; display: flex; gap: 18px; font-size: 14px; }
 .links a { color: #16181d; font-weight: 600; }
 
-/* Phones: stack the die over the button. Wider than the 520px GIF viewport
-   never reaches here, so the README capture is unaffected. */
 @media (max-width: 480px) {
   .page { padding-block: 36px 56px; gap: 32px; }
   .hero h1 { font-size: 26px; }
   .tagline { font-size: 16px; }
-  .card { flex-direction: column; align-items: center; gap: 8px; padding: 12px 28px 28px; }
-  .panel { align-items: center; padding-bottom: 0; }
+  .table-bar { padding: 12px 12px 12px 20px; }
 }

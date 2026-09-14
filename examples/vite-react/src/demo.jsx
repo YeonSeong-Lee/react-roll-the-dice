@@ -63,6 +63,7 @@ function CodeBlock({ code }) {
 function Demo() {
   const dice = useRef(null)
   const [result, setResult] = useState(null)
+  const [rolling, setRolling] = useState(false)
   const [pressed, setPressed] = useState(false)
   const [t, setT] = useState(0)
 
@@ -93,39 +94,71 @@ function Demo() {
   const isPressed = FILM ? t >= PRESS_AT && t < ROLL_AT + 130 : pressed
   const value = FILM ? SCRIPTED_VALUE : result
 
-  const card = (
-    <div className="card">
-      <div className="stage">
-        <Dice
-          ref={dice}
-          size={128}
-          duration={DURATION}
-          random={FILM ? scriptedRandom() : undefined}
-          onRollEnd={setResult}
-        />
+  const die = (
+    <Dice
+      ref={dice}
+      size={128}
+      duration={DURATION}
+      random={FILM ? scriptedRandom() : undefined}
+      onRollEnd={(v) => {
+        setResult(v)
+        setRolling(false)
+      }}
+    />
+  )
+
+  const rollButton = (
+    <button
+      className={isPressed ? 'btn is-pressed' : 'btn'}
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
+      onMouseLeave={() => setPressed(false)}
+      onClick={() => {
+        setResult(null)
+        setRolling(true)
+        dice.current?.roll()
+      }}
+    >
+      Roll
+    </button>
+  )
+
+  // The film frame keeps the original side-by-side card, so the README GIF
+  // stays unchanged.
+  if (FILM) {
+    return (
+      <div className="card">
+        <div className="stage">{die}</div>
+        <div className="panel">
+          {rollButton}
+          <p className={showResult ? 'out is-on' : 'out'}>
+            You rolled <strong>{value ?? '—'}</strong>
+          </p>
+        </div>
       </div>
-      <div className="panel">
-        <button
-          className={isPressed ? 'btn is-pressed' : 'btn'}
-          onMouseDown={() => setPressed(true)}
-          onMouseUp={() => setPressed(false)}
-          onMouseLeave={() => setPressed(false)}
-          onClick={() => {
-            setResult(null)
-            dice.current?.roll()
-          }}
-        >
-          Roll
-        </button>
-        <p className={showResult ? 'out is-on' : 'out'}>
-          You rolled <strong>{value ?? '—'}</strong>
+    )
+  }
+
+  const readout = rolling ? '…' : (result ?? '—')
+
+  const table = (
+    <div className="table">
+      <div className="table-stage">{die}</div>
+      <div className="table-bar">
+        <p className="readout" aria-live="polite">
+          <span className="readout-label">Result</span>
+          {/* Keyed so each new value replays the fade-in. */}
+          <strong
+            key={readout}
+            className={result === null ? 'readout-value is-empty' : 'readout-value'}
+          >
+            {readout}
+          </strong>
         </p>
+        {rollButton}
       </div>
     </div>
   )
-
-  // The film frame is just the card, so the README GIF stays unchanged.
-  if (FILM) return card
 
   return (
     <main className="page">
@@ -142,7 +175,7 @@ function Demo() {
         </ul>
       </header>
 
-      {card}
+      {table}
 
       <section className="usage">
         <h2>Usage</h2>
