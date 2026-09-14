@@ -18,6 +18,10 @@ plain CSS motion. No canvas, no WebGL, no physics engine, no animation library.
   />
 </p>
 
+<p align="center">
+  <a href="https://yeonseong-lee.github.io/react-roll-the-dice/"><strong>Try the live demo →</strong></a>
+</p>
+
 ```bash
 npm install react-roll-the-dice
 ```

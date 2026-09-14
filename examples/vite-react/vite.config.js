@@ -12,9 +12,10 @@ export default defineConfig({
     rollupOptions: {
       input: {
         // The published demo, which scripts/film-demo.mjs also captures the GIF
-        // from, and the test harness.
+        // from; the test harness; and the repo's social preview card.
         main: resolve(import.meta.dirname, 'index.html'),
         harness: resolve(import.meta.dirname, 'harness.html'),
+        social: resolve(import.meta.dirname, 'social.html'),
       },
     },
   },

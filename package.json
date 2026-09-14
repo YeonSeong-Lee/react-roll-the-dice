@@ -1,6 +1,6 @@
 {
   "name": "react-roll-the-dice",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Zero-dependency 3D dice roller for React, rendered entirely in CSS.",
   "keywords": [
     "react",
@@ -14,7 +14,7 @@
   ],
   "license": "MIT",
   "author": "yeonseong <yeonseong.dev@gmail.com>",
-  "homepage": "https://github.com/YeonSeong-Lee/react-roll-the-dice#readme",
+  "homepage": "https://yeonseong-lee.github.io/react-roll-the-dice/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/YeonSeong-Lee/react-roll-the-dice.git"

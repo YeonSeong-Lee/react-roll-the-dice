@@ -1,0 +1,88 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #f6f6f8;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: #16181d;
+}
+
+/* 1280×640 is GitHub's recommended social preview size. */
+.og {
+  width: 1280px;
+  height: 640px;
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  align-items: center;
+  gap: 56px;
+  padding: 0 88px;
+}
+
+.og-kicker {
+  margin: 0 0 14px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b6f7d;
+}
+
+.og h1 { margin: 0; font-size: 58px; line-height: 1.05; letter-spacing: -0.03em; }
+
+.og-tagline { margin: 16px 0 0; font-size: 28px; line-height: 1.35; color: #4b4f5c; }
+
+.og-facts {
+  margin: 30px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.og-facts li {
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 0 1px #e3e4e9;
+  font-size: 19px;
+  color: #4b4f5c;
+}
+
+.og-facts strong { color: #16181d; }
+
+.og-install {
+  display: inline-block;
+  margin: 26px 0 0;
+  padding: 13px 18px;
+  border-radius: 10px;
+  background: #16181d;
+  color: #e6e7ec;
+  font: 19px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* The same table as the demo page: a floor glow under the die and a dot grid
+   fading upward. */
+.og-stage {
+  position: relative;
+  height: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 28px;
+  background: radial-gradient(ellipse 46% 14% at 50% calc(50% + 88px), #eceef3, rgba(236, 238, 243, 0) 70%), #fff;
+  box-shadow: 0 1px 2px rgba(16, 18, 29, 0.06), 0 16px 40px rgba(16, 18, 29, 0.08);
+}
+
+.og-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: radial-gradient(#dcdfe6 1.2px, transparent 1.7px);
+  background-size: 22px 22px;
+  background-position: center bottom;
+  -webkit-mask-image: linear-gradient(to top, #000, transparent 75%);
+  mask-image: linear-gradient(to top, #000, transparent 75%);
+}
