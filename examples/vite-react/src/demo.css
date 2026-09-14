@@ -79,6 +79,9 @@ body { grid-template-columns: minmax(0, 1fr); padding-inline: 16px; }
   gap: 40px;
 }
 
+/* On the page the card spans the same column as the code blocks below it. */
+.page .card { align-self: stretch; justify-content: center; }
+
 .hero { text-align: center; }
 .hero h1 { margin: 0; font-size: 32px; letter-spacing: -0.02em; }
 
