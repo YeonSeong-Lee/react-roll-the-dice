@@ -1,11 +1,12 @@
 import type { HTMLAttributes } from 'react'
+import type { DiceValue } from './value'
 
-export type DiceValue = 1 | 2 | 3 | 4 | 5 | 6
+export type { DiceValue } from './value'
 
 export interface DiceHandle {
   /** Starts a roll and synchronously returns the value it will land on. */
   roll(): DiceValue
-  /** Jumps to a face with no animation. Useful for restoring saved state. */
+  /** Jumps to a face and cancels an active roll without firing onRollEnd. */
   set(value: DiceValue): void
   /** The face currently showing (updates as soon as a roll starts). */
   readonly value: DiceValue
@@ -27,7 +28,7 @@ export interface DiceProps
   pipColor?: string
   /** Make the die itself clickable (and keyboard-operable). @default false */
   rollOnClick?: boolean
-  /** Render the built-in stylesheet inline. @default true */
+  /** Render the built-in stylesheet. Set false when sharing DiceStyles or importing CSS. @default true */
   injectStyles?: boolean
   /** CSP nonce forwarded to the injected `<style>` tag. */
   nonce?: string

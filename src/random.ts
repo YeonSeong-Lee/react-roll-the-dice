@@ -1,4 +1,6 @@
-import type { DiceValue } from './types'
+import type { DiceValue } from './value'
+
+export type { DiceValue } from './value'
 
 /** 252 is the largest multiple of 6 below 256. */
 const UNBIASED_LIMIT = 252

@@ -29,6 +29,11 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "random": ["dist/random.d.ts"]
+    }
+  },
   "exports": {
     ".": {
       "import": {
@@ -38,6 +43,16 @@
       "require": {
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
+      }
+    },
+    "./random": {
+      "import": {
+        "types": "./dist/random.d.ts",
+        "default": "./dist/random.js"
+      },
+      "require": {
+        "types": "./dist/random.d.cts",
+        "default": "./dist/random.cjs"
       }
     },
     "./styles.css": "./dist/styles.css",
@@ -59,13 +74,19 @@
     "pretypecheck": "npm run gen:css",
     "typecheck": "tsc --noEmit",
     "lint:pkg": "publint && node scripts/check-type-resolution.mjs",
-    "prepublishOnly": "npm run typecheck && npm run build && npm run lint:pkg"
+    "pretest": "npm run build",
+    "test": "node --test tests/*.test.mjs",
+    "prepublishOnly": "npm run typecheck && npm test && npm run lint:pkg"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
+    "@sinonjs/fake-timers": "^15.4.0",
     "@types/react": "^19.0.0",
+    "esbuild": "^0.27.7",
+    "jsdom": "^26.1.0",
     "publint": "^0.3.16",
     "react": "^19.0.0",
+    "react-dom": "^19.2.8",
     "tsup": "^8.5.0",
     "typescript": "^5.7.3"
   }

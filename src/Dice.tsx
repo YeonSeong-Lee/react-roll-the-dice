@@ -52,7 +52,7 @@ function usePrefersReducedMotion(): boolean {
   return reduced
 }
 
-export const Dice = forwardRef<DiceHandle, DiceProps>(function Dice(
+export const Dice = /* @__PURE__ */ forwardRef<DiceHandle, DiceProps>(function Dice(
   {
     size = 80,
     defaultValue = 1,
@@ -86,6 +86,9 @@ export const Dice = forwardRef<DiceHandle, DiceProps>(function Dice(
   const cubeRef = useRef<HTMLDivElement>(null)
   const valueRef = useRef<DiceValue>(defaultValue)
   const rollingRef = useRef(false)
+  const rollSequence = useRef(0)
+  const activeRoll = useRef<number | null>(null)
+  const cancelSettle = useRef<(() => void) | null>(null)
   // Turns only ever accumulate, so every roll rotates forward. Rewinding to a
   // smaller angle would read as the die un-rolling itself.
   const turnsX = useRef(0)
@@ -118,16 +121,19 @@ export const Dice = forwardRef<DiceHandle, DiceProps>(function Dice(
     const ry = FACE_ROTATION[next].y + 360 * turnsY.current
     const yaw = Math.round((pick() * 2 - 1) * MAX_YAW * 10) / 10
 
+    cancelSettle.current?.()
+    const rollId = ++rollSequence.current
+    activeRoll.current = rollId
     valueRef.current = next
     markRolling(true)
-    setState((prev) => ({
+    setState({
       value: next,
       rx,
       ry,
       yaw,
-      rollId: prev.rollId + 1,
+      rollId,
       instant: false,
-    }))
+    })
     onRollStartRef.current?.(next)
     return next
   }, [markRolling])
@@ -138,9 +144,13 @@ export const Dice = forwardRef<DiceHandle, DiceProps>(function Dice(
       const rx = FACE_ROTATION[next].x + 360 * turnsX.current
       const ry = FACE_ROTATION[next].y + 360 * turnsY.current
 
+      cancelSettle.current?.()
+      activeRoll.current = null
       valueRef.current = next
       markRolling(false)
-      setState((prev) => ({ ...prev, value: next, rx, ry, instant: true }))
+      // Remove the throw phase as well as the cube transition. Clearing the
+      // instant flag after paint must not restart the cancelled throw.
+      setState((prev) => ({ ...prev, value: next, rx, ry, rollId: 0, instant: true }))
     },
     [markRolling],
   )
@@ -179,14 +189,23 @@ export const Dice = forwardRef<DiceHandle, DiceProps>(function Dice(
   // arrives when the transition is zero-length (reduced motion) and can be
   // skipped in a backgrounded tab — hence the timer, whichever lands first wins.
   useEffect(() => {
-    if (state.rollId === 0) return
+    if (state.rollId === 0 || activeRoll.current !== state.rollId) return
 
+    const rollId = state.rollId
     const cube = cubeRef.current
-    let settled = false
+    let cancelled = false
+
+    const cleanup = () => {
+      cancelled = true
+      cube?.removeEventListener('transitionend', handleTransitionEnd)
+      clearTimeout(timer)
+      if (cancelSettle.current === cleanup) cancelSettle.current = null
+    }
 
     const finish = () => {
-      if (settled) return
-      settled = true
+      if (cancelled || activeRoll.current !== rollId) return
+      activeRoll.current = null
+      cleanup()
       markRolling(false)
       onRollEndRef.current?.(valueRef.current)
     }
@@ -196,12 +215,17 @@ export const Dice = forwardRef<DiceHandle, DiceProps>(function Dice(
     }
 
     cube?.addEventListener('transitionend', handleTransitionEnd)
-    const timer = setTimeout(finish, effectiveDuration + SETTLE_GRACE_MS)
+    // Keep start-before-end ordering and batch same-tick rolls, including when
+    // no transition will run. Only a real animation needs the fallback slack.
+    const timer = setTimeout(
+      finish,
+      effectiveDuration === 0 ? 0 : effectiveDuration + SETTLE_GRACE_MS,
+    )
+    cancelSettle.current = cleanup
 
-    return () => {
-      cube?.removeEventListener('transitionend', handleTransitionEnd)
-      clearTimeout(timer)
-    }
+    // Preserve the active token during effect replay (StrictMode or duration
+    // changes); stale callbacks are still disabled by this closure's cleanup.
+    return cleanup
   }, [state.rollId, effectiveDuration, markRolling])
 
   const handleClick = (event: MouseEvent<HTMLDivElement>) => {

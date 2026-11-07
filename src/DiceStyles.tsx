@@ -11,12 +11,27 @@ import { css } from './styles.generated'
  * React 19 uses `href` as a dedupe key and `precedence` as the hoisting signal —
  * many dice on a page still produce one tag in `<head>`. Both attributes need to
  * be present; `precedence` alone does nothing. React 17 and 18 ignore them and
- * render the tag inline, which is harmless because every copy is identical.
+ * render a copy inline for each instance. Render DiceStyles once and disable
+ * injectStyles on the dice to share one stylesheet across all React versions.
+ *
+ * Hoisted styles take their nonce from the server renderer, not this prop.
+ * A nonce therefore opts into a regular inline style so it survives SSR even
+ * when the consumer cannot configure the framework's streaming renderer.
  */
 export function DiceStyles({ nonce }: { nonce?: string }) {
+  // This is only the build-generated stylesheet, never consumer input. Raw
+  // text avoids React 17/18 HTML-escaping quotes inside CSS on the server.
+  const content = { __html: css }
+  if (nonce !== undefined) {
+    return <style nonce={nonce} data-rtd="" dangerouslySetInnerHTML={content} />
+  }
+
   return (
-    <style href="react-roll-the-dice" precedence="default" nonce={nonce} data-rtd="">
-      {css}
-    </style>
+    <style
+      href="react-roll-the-dice"
+      precedence="default"
+      data-rtd=""
+      dangerouslySetInnerHTML={content}
+    />
   )
 }

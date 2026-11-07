@@ -31,13 +31,15 @@ function addClientDirective(jsPath: string) {
 }
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: ['src/index.ts', 'src/random.ts'],
   format: ['esm', 'cjs'],
   dts: true,
   outExtension: ({ format }) => ({ js: format === 'esm' ? '.js' : '.cjs' }),
   external: ['react', 'react/jsx-runtime'],
   clean: true,
   treeshake: true,
+  // Keep the random entry self-contained and free of React/client chunks.
+  splitting: false,
   sourcemap: true,
   async onSuccess() {
     addClientDirective('dist/index.js')
